@@ -162,7 +162,7 @@ void setup()
 void loop()
 {
   //----------Check ob Neukalibirierung erforderlich (Berührung Endschalter oder lange Inaktiv)------------
-
+  
   //Endschalter einlesen, wenn Kontakt dann Neukalibrierung  
   
   for (int i=1;i<=4;i++){EndSchalter[i] = digitalRead(EndSchalterPin[i]);}
@@ -176,9 +176,8 @@ void loop()
   }
 
 //--------------------------------------------------------------------------------------------------------------
-
-  StatusChange = false;  
-    
+ 
+  StatusChange = false;   
   if (StartWert == 1){calibration();}        
   else {
     G_Change = 0;          //Gewichtswechsel-Flag auf NULL setzen
