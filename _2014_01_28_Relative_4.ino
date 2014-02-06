@@ -33,7 +33,7 @@ int EndSchalter[5];                          //Endschalter status
 int KippStatus[5];                           //Zugmagnet status
 boolean M_Done[5]={                          //motor noch laeuft - false, motor stoped - true
   true, true, true, true, true};    
-int Richtung[5];
+int Richtung[5];                             //0 - anticlock - go down, 1 - clockwise - go up
 
 int Durchlauf[5];
 
