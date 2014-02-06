@@ -132,12 +132,12 @@ void setup()
   digitalWrite(chipDriver, LOW);
 
   pinMode(EndSchalterPin[1], INPUT);
-  pinMode(MagnetPin[1], OUTPUT);
   pinMode(EndSchalterPin[2], INPUT);
-  pinMode(MagnetPin[2], OUTPUT);
   pinMode(EndSchalterPin[3], INPUT);
-  pinMode(MagnetPin[3], OUTPUT);
   pinMode(EndSchalterPin[4], INPUT);
+  pinMode(MagnetPin[1], OUTPUT);  
+  pinMode(MagnetPin[2], OUTPUT);
+  pinMode(MagnetPin[3], OUTPUT);
   pinMode(MagnetPin[4], OUTPUT);
 
   LEDSerial.print("kerze;");
@@ -165,21 +165,24 @@ void loop()
   
   //Endschalter einlesen, wenn Kontakt dann Neukalibrierung  
   
-  for (int i=1;i<=4;i++){EndSchalter[i] = digitalRead(EndSchalterPin[i]);}
+  for (int i=1;i<=4;i++){
+    EndSchalter[i] = digitalRead(EndSchalterPin[i]);
+  }
     
   if ((EndSchalter[1] == 0)||(EndSchalter[2] == 0)||(EndSchalter[3] == 0)||(EndSchalter[4] == 0)) {  //wenn Endschalter Kontakt Neukalibrierung 
    StartWert = 1; 
   }
   
-  if ((millis()-Waagezeit_inaktiv) > Waagezeit_Konstante){
+  if (abs(millis()-Waagezeit_inaktiv) > Waagezeit_Konstante){
    StartWert = 1; 
   }
 
-//--------------------------------------------------------------------------------------------------------------
+  //--------------------------------------------------------------------------------------------------------------
  
   StatusChange = false;   
-  if (StartWert == 1){calibration();}        
-  else {
+  if (StartWert == 1){
+    calibration();
+  } else {
     G_Change = 0;          //Gewichtswechsel-Flag auf NULL setzen
  
  
