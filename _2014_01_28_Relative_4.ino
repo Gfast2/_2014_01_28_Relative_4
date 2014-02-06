@@ -133,30 +133,29 @@ void loop()
 {
   //----------Check ob Neukalibirierung erforderlich (Berührung Endschalter oder lange Inaktiv)------------
   
-  //Endschalter einlesen, wenn Kontakt dann Neukalibrierung  
-  for (int i=1;i<=4;i++){
+  for (int i=1;i<=4;i++){ //Endschalter einlesen, wenn Kontakt dann Neukalibrierung  
     EndSchalter[i] = digitalRead(EndSchalterPin[i]);
-  }
-    
-  if ((EndSchalter[1] == 0)||(EndSchalter[2] == 0)||(EndSchalter[3] == 0)||(EndSchalter[4] == 0)) {  //wenn Endschalter Kontakt Neukalibrierung 
-    calibration();
-  }
-  //-------------------------------------------------------------------------------------------------------------- 
+    if(EndSchalter[i] == 0){
+      calibration();
+      break;
+    }
+  }    
   
   StatusChange = false;    //Statuswechsel-Flag auf NULL setzen  
   G_Change = 0;          //Gewichtswechsel-Flag auf NULL setzen
  
- //------------Gewicht einlesen und Gewichtsänderung feststellen-------------------------------------------------
+  //------------Gewicht einlesen und Gewichtsänderung feststellen------------------------------------------
  
-  for (int j=1;j<=4;j++){
-    
+  for (int j=1;j<=4;j++){    
     weightRead(j);//Gewicht einlesen
     delay(5);//Pause zum nächsten Transmitter
-    if (Gewicht[j] < 0){Gewicht[j] = 0;}
-    
+    if (Gewicht[j] < 0)  Gewicht[j] = 0;
+  }
+
+  for (int j=1; j<=4; j++){  
     if (abs(GewichtAlt[j]-Gewicht[j])>G_Schwellwert){
-      G_Change = 1;
-      
+      G_Change = 1;      
+      GewichtAlt[j] = Gewicht[j];
       if (abs(GewichtAlt[j]-Gewicht[j])>(G_MaxChange)){
         G_Change = 0;
         MotorHardStop(1);
@@ -164,9 +163,9 @@ void loop()
         MotorHardStop(3);
         MotorHardStop(4);
       }      
-      GewichtAlt[j] = Gewicht[j];  
-    }      
+    }
   }
+  
  
   //-----------Ende Gewicht einlesen---------------------------------------------------
  
