@@ -67,6 +67,7 @@ long processInput (){
 }  // end of processInput
 
 /*
+//long drehwert = 0; //don't be used anymore
 void GetPosition(int motorNr){
   shaftEncoder(motorNr);
   Position[motorNr] = (drehwert);

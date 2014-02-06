@@ -138,7 +138,6 @@ void calibration(){
     }
   }
   
-  StartWert = 0;
   StatusNeu = 13;
   StatusAlt = 13;
 

@@ -2,15 +2,17 @@
  *
  * Edite: 6 Feb. 2014
  * By Gfast
+ *
+ *
  */
 
 #include <SoftwareSerial.h>
 SoftwareSerial LEDSerial(20, 21);
 
-  
-//Einstellbare Werte
-const long Waagezeit_Konstante = 240000;     //Wartezeit bei fehlendem Statuswechsel bis Reset
-//long Waagezeit_inaktiv = 0;   
+//Pin Definition
+int chipDriver = 2;                          //RS485 Treiber für Transmitter (HalbDuplex)
+int EndSchalterPin[5]={0,40,42,52,50};
+int MagnetPin[5]={0,51,53,41,43};
 
 const long RelativMaxWeg = 12000;
 
@@ -23,44 +25,28 @@ const long FaktorGewicht = 200;              //Umrechnung Gewichtsdifferenz auf 
 const float BremsFaktor = 4.; 
 const float a_Min = 1.;                      //Minimalbeschleunigung in Hz/ms^2; war 2.
 const float a_Max = 6.;                      //Maximalbeschleunigung in Hz/ms; 
-//const long BremsWegMax = 10000; //optional falls reale Geschwindigkeit einbezogen wird
 
-
-//Pin Definition
-int chipDriver = 2;                          //RS485 Treiber für Transmitter (HalbDuplex)
-int EndSchalterPin[5]={0,40,42,52,50};
-int MagnetPin[5]={0,51,53,41,43};
-
-int StartWert = 1;
-int DoneFlag = 0; //Ratsel successed
-
+int DoneFlag = 0;                            //Ratsel successed
+int MotorOben = 1;                           //aktuell höchster Motor zur Übergabe der Fahrtcharakteristika an Motor4  
 boolean GewichtChange4 = false;
+int EndSchalter[5];                          //Endschalter status 
+int KippStatus[5];                           //Zugmagnet status
+boolean M_Done[5]={                          //motor noch laeuft - false, motor stoped - true
+  true, true, true, true, true};    
+int Richtung[5];
 
 int Durchlauf[5];
-
-int MotorOben = 1;                            //aktuell höchster Motor zur Übergabe der Fahrtcharakteristika an Motor4  
 
 float a_Ref;
 float a_Aktuell[5];
 long b_Value[5];
 long a_Value[5];
+const long v_Max = 40000; //war 25000       //Maximum Geschwindigkeit alle Schale
 
-//long v_Ref;
-//long v_Aktuell[5];
-
-//const long v_Min = 2000;
-const long v_Max = 40000; //war 25000
-
-
-int EndSchalter[5];
-
-int KippStatus[5];
-
-const int Schwellwert = 150;                 //Position unterschied zwischen alte und neue gelesen Position
-
-long Position[5]={0,0,0,0,0};                //Akutelle Position
+long Position[5]={0,0,0,0,0};               //Akutelle Position
 long PositionAlt[5];
 long PositionSoll[5];
+const int Schwellwert = 150;                //Position unterschied zwischen alte und neue gelesen Position,Unit: steps?
 
 //-----------------Für Berechnung aktuelle Geschwindigkeit und Bremsweg
 /*
@@ -71,24 +57,14 @@ long TimeNeu[5];
 */
 //-----------------
 
-int Richtung[5];
-
-boolean M_Done[5]={true, true, true, true, true};
-
 //Gewicht und Status-----
 long Gewicht[5];
 long GewichtAlt[5];
-
-int GewichtStatus[5];                        //Status 0: Normal, Status 1: ausgelesener Wert rubbish, Status 2: Gewicht zu hoch, Status 3: anything else 
-
 int G_Change = 0;
-
 int StatusNeu;                               //eine von 15 unterschiedlich Status
 int StatusAlt; 
 boolean StatusChange = false;
 //-----
-
-long drehwert = 0;
 
 long kippPosition = -45000;
 long kippPosUnten = -80000;
@@ -108,7 +84,8 @@ int Stufenlaenge = 10000;
 
 long WegW1, WegW2;                          //WegW1 for the Grosse Waage, WegW2 for the small Waage of Plate 2 and 3
 
-long StartPosition[5]={0, PosMitteOben, PosMitteUnten, PosMitteUnten, PosMitte};
+long StartPosition[5]={                     //Position fuer jeder Schale am Anfang und nach Calibration
+  0, PosMitteOben, PosMitteUnten, PosMitteUnten, PosMitte};
 
 
 //------------------------------------------------------------------------------------
@@ -122,35 +99,23 @@ long StartPosition[5]={0, PosMitteOben, PosMitteUnten, PosMitteUnten, PosMitte};
 /\____) || (____/\   | |   | (___) || )      
 \_______)(_______/   )_(   (_______)|/       
 */                                       
-
 void setup()
 {
-  Serial3.begin(115200); //Gewichtstransmitter
-  Serial2.begin(115200); //Motoren
-  Serial1.begin(115200); //Musik
-  Serial.begin(115200); //Rechner
-  
-  LEDSerial.begin(38400);
-
-  
+  Serial.begin(115200);   //Rechner
+  Serial2.begin(115200);  //Motoren
+  Serial3.begin(115200);  //Gewichtstransmitter
+  LEDSerial.begin(38400); //LED and Musik control (software)
 
   pinMode(chipDriver,OUTPUT);
   digitalWrite(chipDriver, LOW);
 
-  pinMode(EndSchalterPin[1], INPUT);
-  pinMode(EndSchalterPin[2], INPUT);
-  pinMode(EndSchalterPin[3], INPUT);
-  pinMode(EndSchalterPin[4], INPUT);
-  pinMode(MagnetPin[1], OUTPUT);  
-  pinMode(MagnetPin[2], OUTPUT);
-  pinMode(MagnetPin[3], OUTPUT);
-  pinMode(MagnetPin[4], OUTPUT);
+  for(int i=1; i<5; i++) {
+    pinMode(MagnetPin[i], OUTPUT);  
+    pinMode(EndSchalterPin[i], INPUT);
+  }
 
-  LEDSerial.print("kerze;");
-  
-  //Waagezeit_inaktiv = millis();
-  
-  Serial.println("Awake!");  
+  Serial.println("\nAwake!");  
+  calibration();
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------
@@ -164,36 +129,22 @@ void setup()
 | (____/\| (___) || (___) || )      
 (_______/(_______)(_______)|/  
 */
-
 void loop()
 {
   //----------Check ob Neukalibirierung erforderlich (Berührung Endschalter oder lange Inaktiv)------------
   
   //Endschalter einlesen, wenn Kontakt dann Neukalibrierung  
-  
   for (int i=1;i<=4;i++){
     EndSchalter[i] = digitalRead(EndSchalterPin[i]);
   }
     
   if ((EndSchalter[1] == 0)||(EndSchalter[2] == 0)||(EndSchalter[3] == 0)||(EndSchalter[4] == 0)) {  //wenn Endschalter Kontakt Neukalibrierung 
-    //StartWert = 1; 
     calibration();
   }
+  //-------------------------------------------------------------------------------------------------------------- 
   
-  /*
-  if (abs(millis()-Waagezeit_inaktiv) > Waagezeit_Konstante){
-    //StartWert = 1;
-    //calibration();   
-    Serial.println("Time block Problem.");
-  }
-  */
-  //--------------------------------------------------------------------------------------------------------------
- 
-  StatusChange = false;    //Statuswechsel-Flag auf NULL setzen
-  if (StartWert == 1){
-    calibration(); //here can be delete
-  } else {
-    G_Change = 0;          //Gewichtswechsel-Flag auf NULL setzen
+  StatusChange = false;    //Statuswechsel-Flag auf NULL setzen  
+  G_Change = 0;          //Gewichtswechsel-Flag auf NULL setzen
  
  //------------Gewicht einlesen und Gewichtsänderung feststellen-------------------------------------------------
  
@@ -217,9 +168,9 @@ void loop()
     }      
   }
  
-//-----------Ende Gewicht einlesen---------------------------------------------------
+  //-----------Ende Gewicht einlesen---------------------------------------------------
  
-//-----------Begin Statusabfrage (neue SollPositionen für Motoren)------------------- 
+  //-----------Begin Statusabfrage (neue SollPositionen für Motoren)------------------- 
  
   if ((G_Change == 1)&&(DoneFlag == false)){   //Wenn Gewichtsänderung und Ratsel nit geloest, dann Motor-Werte aktualisieren 
     //Waagezeit_inaktiv = millis();            //Falls StatusÄnderung Reset Waagezeit_inaktiv (für Restart nach bestimmter Inaktivzeit)
@@ -284,15 +235,7 @@ void loop()
   
   if (G_Change == 1) UpdateMotorCharacter();    //Bei Gewichtsänderung MotorWerte (Beschleunigung, MaximalSpeed, Bremsbeschleunigung aktualisieren)
   
-  }//----------------------Ende Normalschleife (falls kein Endschalter gedrückt) ----------------------
+  
    
 } //--------------------- End of loop ---------------------
-
-
-
-
-
-
-
-
 

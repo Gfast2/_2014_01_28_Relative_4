@@ -1,4 +1,6 @@
+
 void weightRead(int waageID){
+  int GewichtStatus[5];  //Status 0: Normal, Status 1: ausgelesener Wert rubbish, Status 2: Gewicht zu hoch, Status 3: anything else 
   int SignGewicht[5];
 
   digitalWrite(chipDriver, HIGH); //send the command to weight transmitter asking the "netto weight"
