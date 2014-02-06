@@ -4,7 +4,7 @@ SoftwareSerial LEDSerial(20, 21);
   
 //Einstellbare Werte
 const long Waagezeit_Konstante = 120000;     //Wartezeit bei fehlendem Statuswechsel bis Reset
-long Waagezeit_inaktiv;   
+long Waagezeit_inaktiv = 0;   
 
 const long RelativMaxWeg = 12000;
 
@@ -165,9 +165,7 @@ void loop()
 
   //Endschalter einlesen, wenn Kontakt dann Neukalibrierung  
   
-  for (int i=1;i<=4;i++){                            
-    EndSchalter[i] = digitalRead(EndSchalterPin[i]);
-  }
+  for (int i=1;i<=4;i++){EndSchalter[i] = digitalRead(EndSchalterPin[i]);}
     
   if ((EndSchalter[1] == 0)||(EndSchalter[2] == 0)||(EndSchalter[3] == 0)||(EndSchalter[4] == 0)) {  //wenn Endschalter Kontakt Neukalibrierung 
    StartWert = 1; 
