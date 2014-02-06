@@ -92,7 +92,7 @@ void SetMotorStartValues(){
   delay(10);
   Serial2.println("#*u100"); //Minimalfrequenz Seite49
   delay(10);
-  Serial2.println("#*o5000"); //Maximalfrequenz Seite50
+  Serial2.println("#*o7000"); //Maximalfrequenz Seite50
   delay(10);
   Serial2.println("#*b41649"); //equal to 3Hz/ms, set acceleration Seite51
   delay(10);

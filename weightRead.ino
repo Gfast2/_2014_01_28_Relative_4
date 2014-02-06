@@ -85,21 +85,12 @@ void zero(int TransmitterNum){
   digitalWrite(chipDriver, HIGH);
   switch(TransmitterNum)
   {
-  case 1:
-    Serial3.write("$01ZERO03\r");
-    break;
-  case 2:
-    Serial3.write("$02ZERO00\r");
-    break;
-  case 3:
-    Serial3.write("$03ZERO01\r");
-    break;
-  case 4:
-    Serial3.write("$04ZERO06\r");
-  default:
-    Serial.println("Zero setting address not readable");	
+  case 1:    Serial3.write("$01ZERO03\r");    break;
+  case 2:    Serial3.write("$02ZERO00\r");    break;
+  case 3:    Serial3.write("$03ZERO01\r");    break;
+  case 4:    Serial3.write("$04ZERO06\r");    break;
+  default:   Serial.println("Zero setting address not readable");	
   }
   delay(5);
-  digitalWrite(chipDriver, LOW);
-  
+  digitalWrite(chipDriver, LOW);  
 } 

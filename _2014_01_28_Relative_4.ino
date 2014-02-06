@@ -1,9 +1,15 @@
+/* This is the first on github uploaded prototype. It should also be the final beta version
+ *
+ *
+ *
+ */
+
 #include <SoftwareSerial.h>
 SoftwareSerial LEDSerial(20, 21);
 
   
 //Einstellbare Werte
-const long Waagezeit_Konstante = 120000;     //Wartezeit bei fehlendem Statuswechsel bis Reset
+const long Waagezeit_Konstante = 240000;     //Wartezeit bei fehlendem Statuswechsel bis Reset
 long Waagezeit_inaktiv = 0;   
 
 const long RelativMaxWeg = 12000;
@@ -144,7 +150,7 @@ void setup()
   
   Waagezeit_inaktiv = millis();
   
-  Serial.println("setup finished");  
+  Serial.println("Awake!");  
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------
@@ -170,27 +176,24 @@ void loop()
   }
     
   if ((EndSchalter[1] == 0)||(EndSchalter[2] == 0)||(EndSchalter[3] == 0)||(EndSchalter[4] == 0)) {  //wenn Endschalter Kontakt Neukalibrierung 
-   StartWert = 1; 
+    //StartWert = 1; 
+    calibration();
   }
   
   if (abs(millis()-Waagezeit_inaktiv) > Waagezeit_Konstante){
-   StartWert = 1; 
+    //StartWert = 1;
+    calibration();   
   }
 
   //--------------------------------------------------------------------------------------------------------------
  
-  StatusChange = false;   
+  StatusChange = false;    //Statuswechsel-Flag auf NULL setzen
   if (StartWert == 1){
-    calibration();
+    calibration(); //here can be delete
   } else {
     G_Change = 0;          //Gewichtswechsel-Flag auf NULL setzen
  
- 
- 
  //------------Gewicht einlesen und Gewichtsänderung feststellen-------------------------------------------------
- 
- 
-  
  
   for (int j=1;j<=4;j++){
     
@@ -302,7 +305,7 @@ void loop()
   
   
   
-}//----------------------Ende Normalschleife (falls kein Endschalter gedrückt) 
+  }//----------------------Ende Normalschleife (falls kein Endschalter gedrückt) ----------------------
    
 } //---------------------End of loop
 

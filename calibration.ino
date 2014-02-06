@@ -32,7 +32,7 @@ for (int i=1;i<=4;i++){
     // Motoren jetzt ganz oben
     // -------------------------------------------------------------------------------------------------------------------------------
 
-    Serial2.println("#*o7000"); //Maximalfrequenz Seite50
+    Serial2.println("#*o9000"); //Maximalfrequenz Seite50
     delay(10);
     Serial2.println("#*D0"); //Drehüberwachung Reset
     delay(10);
