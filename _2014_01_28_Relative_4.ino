@@ -32,7 +32,7 @@ int EndSchalterPin[5]={0,40,42,52,50};
 int MagnetPin[5]={0,51,53,41,43};
 
 int StartWert = 1;
-int DoneFlag = 0;
+int DoneFlag = 0; //Ratsel successed
 
 boolean GewichtChange4 = false;
 
@@ -201,113 +201,90 @@ void loop()
     delay(5);//Pause zum nächsten Transmitter
     if (Gewicht[j] < 0){Gewicht[j] = 0;}
     
-    
     if (abs(GewichtAlt[j]-Gewicht[j])>G_Schwellwert){
       G_Change = 1;
- 
+      
       if (abs(GewichtAlt[j]-Gewicht[j])>(G_MaxChange)){
-
-      G_Change = 0;
-      MotorHardStop(1);
-      MotorHardStop(2);
-      MotorHardStop(3);
-      MotorHardStop(4);
-      }
-      
+        G_Change = 0;
+        MotorHardStop(1);
+        MotorHardStop(2);
+        MotorHardStop(3);
+        MotorHardStop(4);
+      }      
       GewichtAlt[j] = Gewicht[j];  
- 
-      }
-      
-      
-      
+    }      
   }
  
- 
-  
 //-----------Ende Gewicht einlesen---------------------------------------------------
- 
  
 //-----------Begin Statusabfrage (neue SollPositionen für Motoren)------------------- 
  
-  
-      if ((G_Change == 1)&&(DoneFlag != 1)){      //Wenn Gewichtsänderung dann Motor-Werte aktualisieren 
-          Waagezeit_inaktiv = millis();           //Falls StatusÄnderung Reset Waagezeit_inaktiv (für Restart nach bestimmter Inaktivzeit)
-      
-      
-      StatusNeu = GetStatus(Gewicht[1], Gewicht[2], Gewicht[3], Gewicht[4]);  //Alle aktuellen Gewichtswerte an Funktion "Getstatus" übergeben
-                                                                              //Funktion gibt Wert zwischen 1 und 13 zurück (SollPositionen)         
-      
-        if (StatusNeu == 15) StatusNeu = StatusAlt;                           //Wenn Minimalgewicht nicht erreicht Status belassen
+  if ((G_Change == 1)&&(DoneFlag == false)){   //Wenn Gewichtsänderung und Ratsel nit geloest, dann Motor-Werte aktualisieren 
+    //Waagezeit_inaktiv = millis();            //Falls StatusÄnderung Reset Waagezeit_inaktiv (für Restart nach bestimmter Inaktivzeit)
+    
+    StatusNeu = GetStatus(Gewicht[1], Gewicht[2], Gewicht[3], Gewicht[4]);  //Alle aktuellen Gewichtswerte an Funktion "Getstatus" übergeben
+    
+    if (StatusNeu == 15) StatusNeu = StatusAlt;                             //Wenn Minimalgewicht nicht erreicht Status belassen
      
-        SetNewStatus(StatusNeu, Gewicht[4]);                                  //Aus Statusnummer jeweilige SollPositionen setzen
-        StatusAlt = StatusNeu;
-        StatusChange = true;
+    SetNewStatus(StatusNeu, Gewicht[4]);                                    //Aus Statusnummer jeweilige SollPositionen setzen
+    StatusAlt = StatusNeu;
+    StatusChange = true;
     
+    for (int i=1; i<=4;i++){
+      Durchlauf[i] = 0;        //Für Nachschwingdurchgänge beim Bewegen
+    }
     
-        for (int i=1; i<=4;i++){
-        Durchlauf[i] = 0;        //Für Nachschwingdurchgänge beim Bewegen
-        }
-      
-      /*if ((StatusNeu != StatusAlt) || (GewichtChange4 == true)){              //Wenn Statusänderung oder Gewicht4-Änderung(Error oder Errorreturn)
-            
-        SetNewStatus(StatusNeu, Gewicht[4]);                                  //Aus Statusnummer jeweilige SollPositionen setzen
-        StatusAlt = StatusNeu;
-        StatusChange = true;
+    /*if ((StatusNeu != StatusAlt) || (GewichtChange4 == true)){              //Wenn Statusänderung oder Gewicht4-Änderung(Error oder Errorreturn)
+        
+    SetNewStatus(StatusNeu, Gewicht[4]);                                  //Aus Statusnummer jeweilige SollPositionen setzen
+    StatusAlt = StatusNeu;
+    StatusChange = true;
     
-        for (int i=1; i<=4;i++){
-        Durchlauf[i] = 0;        //Für Nachschwingdurchgänge beim Bewegen
-        }
-      } */
+    for (int i=1; i<=4;i++){
+    Durchlauf[i] = 0;        //Für Nachschwingdurchgänge beim Bewegen
+    }
+    } */
+    
+    //UpdateMotorValues();
+  }
+    
+  //-------------- Wenn Sonderfall Rätsel gelöst --------------
   
-      //UpdateMotorValues();
-      }
-    
-   //-------------- Sonderfall Rätsel gelöst  
-      
-      else if (StatusNeu == 14){              //DONE!!!
-	DoneFlag = 1;
-        LEDSerial.print("blink;"); 
-      }
-      
-      else if (StatusNeu == 13){
-        Waagezeit_inaktiv = millis();           //Falls StatusÄnderung Reset Waagezeit_inaktiv (für Restart nach bestimmter Inaktivzeit)
-
-      }
-            
-      
-   //-------------- Ende Sonderfall
+  else if (StatusNeu == 14){              //Problem geloest
+    DoneFlag = 1;
+    LEDSerial.print("blink;"); 
+  }
+  
+  else if (StatusNeu == 13){
+    Waagezeit_inaktiv = millis();           //Falls StatusÄnderung Reset Waagezeit_inaktiv (für Restart nach bestimmter Inaktivzeit)  
+  }
+  
+  
+  //-------------- Ende Sonderfall --------------
    
-//------------------Ende StatusZuweisung--------------------------------------------------
+  //------------------Ende StatusZuweisung--------------------------------------------------
   
 
-//------------------Begin Motorfahrt / Fahrtkontrolle-------------------------------------
+  //------------------Begin Motorfahrt / Fahrtkontrolle-------------------------------------
 
   if ((StatusChange == true) || (M_Done[1] == false) || (M_Done[2] == false) || (M_Done[3] == false) || (M_Done[4] == false)){
-  MotorFahrt();
+    MotorFahrt();
   }
   
   if ((DoneFlag == 1) && (M_Done[1] == true) && (M_Done[2] == true) && (M_Done[3] == true) && (M_Done[4] == true)){
-    delay(3000);
+    delay(2000);
     LEDSerial.print("kerze;");       
     
-    
-    SetMotorStartValues();
     calibration();
-    StartWert = 0;
-    StatusNeu = 13;
-    StatusAlt = 13;
     DoneFlag = 0;
     delay(1000);
   }
   
-  
   if (G_Change == 1) UpdateMotorCharacter();    //Bei Gewichtsänderung MotorWerte (Beschleunigung, MaximalSpeed, Bremsbeschleunigung aktualisieren)
-  
-  
   
   }//----------------------Ende Normalschleife (falls kein Endschalter gedrückt) ----------------------
    
-} //---------------------End of loop
+} //--------------------- End of loop ---------------------
 
 
 
