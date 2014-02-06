@@ -1,5 +1,6 @@
 void calibration(){
   Serial.print("Calibration start ");
+  LEDSerial.print("blink;");
   SetMotorStartValues();
 
   for (int i=1;i<=4;i++){

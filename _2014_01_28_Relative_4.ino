@@ -1,7 +1,7 @@
 /* This is the first on github uploaded prototype. It should also be the final beta version
  *
- *
- *
+ * Edite: 6 Feb. 2014
+ * By Gfast
  */
 
 #include <SoftwareSerial.h>
@@ -182,7 +182,8 @@ void loop()
   
   if (abs(millis()-Waagezeit_inaktiv) > Waagezeit_Konstante){
     //StartWert = 1;
-    calibration();   
+    //calibration();   
+    Serial.println("Time block Problem.");
   }
 
   //--------------------------------------------------------------------------------------------------------------
