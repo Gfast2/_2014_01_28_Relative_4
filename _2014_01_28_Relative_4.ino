@@ -100,7 +100,7 @@ long AnschlagUnten = -93000;
 
 int Stufenlaenge = 10000;
 
-long WegW1, WegW2;
+long WegW1, WegW2;                          //WegW1 for the Grosse Waage, WegW2 for the small Waage of Plate 2 and 3
 
 long StartPosition[5]={0, PosMitteOben, PosMitteUnten, PosMitteUnten, PosMitte};
 
