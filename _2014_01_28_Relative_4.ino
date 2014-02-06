@@ -10,7 +10,7 @@ SoftwareSerial LEDSerial(20, 21);
   
 //Einstellbare Werte
 const long Waagezeit_Konstante = 240000;     //Wartezeit bei fehlendem Statuswechsel bis Reset
-long Waagezeit_inaktiv = 0;   
+//long Waagezeit_inaktiv = 0;   
 
 const long RelativMaxWeg = 12000;
 
@@ -148,7 +148,7 @@ void setup()
 
   LEDSerial.print("kerze;");
   
-  Waagezeit_inaktiv = millis();
+  //Waagezeit_inaktiv = millis();
   
   Serial.println("Awake!");  
 }
@@ -180,12 +180,13 @@ void loop()
     calibration();
   }
   
+  /*
   if (abs(millis()-Waagezeit_inaktiv) > Waagezeit_Konstante){
     //StartWert = 1;
     //calibration();   
     Serial.println("Time block Problem.");
   }
-
+  */
   //--------------------------------------------------------------------------------------------------------------
  
   StatusChange = false;    //Statuswechsel-Flag auf NULL setzen
@@ -257,7 +258,7 @@ void loop()
   }
   
   else if (StatusNeu == 13){
-    Waagezeit_inaktiv = millis();           //Falls StatusÄnderung Reset Waagezeit_inaktiv (für Restart nach bestimmter Inaktivzeit)  
+    //Waagezeit_inaktiv = millis();           //Falls StatusÄnderung Reset Waagezeit_inaktiv (für Restart nach bestimmter Inaktivzeit)  
   }
   
   
@@ -286,10 +287,6 @@ void loop()
   }//----------------------Ende Normalschleife (falls kein Endschalter gedrückt) ----------------------
    
 } //--------------------- End of loop ---------------------
-
-
-
-
 
 
 

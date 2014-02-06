@@ -142,7 +142,8 @@ void calibration(){
   StatusNeu = 13;
   StatusAlt = 13;
 
-  Waagezeit_inaktiv = millis();
+  //Waagezeit_inaktiv = millis();
   Serial.println(" finished!");
+  LEDSerial.print("kerze;");
 }
 
